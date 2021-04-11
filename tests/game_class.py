@@ -1,3 +1,5 @@
+import random 
+import math
 class Game:
     def __init__(self, players, board_size=[7,7]):
         self.players = players
@@ -50,36 +52,43 @@ class Game:
                 in_bounds_translations.append(translation)
         return in_bounds_translations
 
-    def complete_turn(self):
-        # YOUR CODE HERE
-        # for each player, figure out what translations
-        # are in bounds for their scout, and get the player's
-        # choice of where they want to move their scout.
-        # Then, update the game state accordingly.
+    def complete_movement_phase(self):
         
         for player in self.players:
           #find in bound translations
+
           coords = self.state['players'][player.player_number]['scout_coords']
-        
-          in_bounds_translations = self.get_in_bounds_translations(coords)
+          if coords != None:
+            in_bounds_translations = self.get_in_bounds_translations(coords)
 
-          best_choice = player.choose_translation(self.state, in_bounds_translations)
+            best_choice = player.choose_translation(self.state, in_bounds_translations)
 
-          scout_coord_x = self.state['players'][player.player_number]['scout_coords'][0]
+            scout_coord_x = self.state['players'][player.player_number]['scout_coords'][0]
 
-          scout_coord_y = self.state['players'][player.player_number]['scout_coords'][1]
+            scout_coord_y = self.state['players'][player.player_number]['scout_coords'][1]
 
-          new_x = scout_coord_x + best_choice[0]
-          new_y = scout_coord_y + best_choice[1]
+            new_x = scout_coord_x + best_choice[0]
+            new_y = scout_coord_y + best_choice[1]
          
-          self.state['players'][player.player_number]['scout_coords'] = (new_x, new_y)
+            self.state['players'][player.player_number]['scout_coords'] = (new_x, new_y)
         
         self.state['turn'] += 1
+
+
+    def complete_combat_phase(self):
+      if self.state['players'][1]['scout_coords'] == self.state['players'][2]['scout_coords']:
+        losser = random.randint(1,2)
+        self.state['players'][losser]['scout_coords'] = None
+      else:
+        return 'Nothing changes since no units occupy the same location'
+
+
 
     def run_to_completion(self):
 
         while self.state['winner'] == None:
-          self.complete_turn()
+          self.complete_movement_phase()
+          self.complete_combat_phase()
           for player in self.players:
             for opposing_player in self.players:
               if player.player_number != opposing_player.player_number:
@@ -89,7 +98,7 @@ class Game:
                   if self.state['winner'] != None:
                     self.state['winner'] = 'Tie'
                   else:
-                    self.state['winner'] = 'Player ' + str(player.player_number)
+                    self.state['winner'] = player.player_number
 
         # YOUR CODE HERE
         # complete turns until there is a winner
